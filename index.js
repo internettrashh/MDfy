@@ -1,9 +1,7 @@
 import puppeteer from "puppeteer";
 import TurndownService from 'turndown';
 import fs from 'fs';
-import Groq from 'groq-sdk';
-import 'dotenv/config'
-
+import fetch from 'node-fetch';
 
 async function getDOM() {
     const baseUrl = 'https://deno.com/blog/build-cloud-ide-subhosting';
@@ -36,15 +34,19 @@ async function getDOM() {
         }
 
         fs.writeFileSync('output.md', markdown);
-        const result = await getGroqChatCompletion(`You are an AI assistant that converts webpage content to markdown while filtering out unnecessary information. Please follow these guidelines:
+        const result = await getDeepInfraChatCompletion(`You are an AI assistant that converts webpage content to markdown while filtering out unnecessary information. Please follow these guidelines:
 Remove any inappropriate content, ads, or irrelevant information
 If unsure about including something, err on the side of keeping it
 Answer in English. Include all points in markdown in sufficient detail to be useful.
 Aim for clean, readable markdown.
-Return the markdown and nothing else.
+Return the markdown and nothing.
 Input: ${markdown}`);
         fs.unlinkSync('output.md');
-        fs.writeFileSync('final.md', result.choices[0]?.message?.content || "");
+        if (result.choices && result.choices.length > 0) {
+            fs.writeFileSync('final.md', result.choices[0]?.message?.content || "");
+        } else {
+            console.error('No choices returned from the API');
+        }
     } catch (error) {
         console.error('Error:', error.message);
     } finally {
@@ -57,24 +59,30 @@ async function getLinks(page, baseUrl) {
         return Array.from(document.querySelectorAll('a'))
             .map(a => a.href)
             .filter(href => href.startsWith(baseUrl))
-            .slice(0, 1);
+            .slice(0, 10); // Limit to 10 links , edit this based on your token limits
     }, baseUrl);
 }
-
-async function getGroqChatCompletion(input) {
-    const groq = new Groq({
-        apiKey: process.env.GROQ_API_KEY
+//replace the llm if you wish am still experimenting on this part of the code , just make sure you have access to about 6-7k tokens per request
+async function getDeepInfraChatCompletion(input) {
+    const response = await fetch('https://api.deepinfra.com/v1/openai/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.DEEPINFRA_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: "meta-llama/Meta-Llama-3-8B-Instruct",
+            messages: [
+                {
+                    role: "user",
+                    content: input
+                }
+            ]
+        })
     });
 
-    return groq.chat.completions.create({
-        messages: [
-            {
-                role: "user",
-                content: input
-            }
-        ],
-        model: "llama3-8b-8192"
-    });
+    const result = await response.json();
+    return result;
 }
 
 getDOM();

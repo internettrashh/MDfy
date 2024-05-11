@@ -1,6 +1,9 @@
 import puppeteer from "puppeteer";
-import fs from "fs";
-import path from "path";
+import TurndownService from 'turndown';
+import fs from 'fs';
+import Groq from 'groq-sdk';
+import 'dotenv/config'
+
 
 async function getDOM() {
     const baseUrl = 'https://deno.com/blog/build-cloud-ide-subhosting';
@@ -15,6 +18,9 @@ async function getDOM() {
         }, timeout);
     });
     
+    const turndownService = new TurndownService();
+    let markdown = '';
+
     try {
         await Promise.race([
             page.goto(baseUrl),
@@ -22,13 +28,23 @@ async function getDOM() {
         ]);
         
         const links = await getLinks(page, baseUrl);
-        console.log(links);
+        
+        for (const link of links) {
+            await page.goto(link);
+            const html = await page.content();
+            markdown += turndownService.turndown(html);
+        }
 
-        const pdfContent = await convertPdf(browser, links);
-
-        // Write all PDFs to a single file
-        fs.writeFileSync('output.pdf', Buffer.concat(pdfContent));
-        browser.close();
+        fs.writeFileSync('output.md', markdown);
+        const result = await getGroqChatCompletion(`You are an AI assistant that converts webpage content to markdown while filtering out unnecessary information. Please follow these guidelines:
+Remove any inappropriate content, ads, or irrelevant information
+If unsure about including something, err on the side of keeping it
+Answer in English. Include all points in markdown in sufficient detail to be useful.
+Aim for clean, readable markdown.
+Return the markdown and nothing else.
+Input: ${markdown}`);
+        fs.unlinkSync('output.md');
+        fs.writeFileSync('final.md', result.choices[0]?.message?.content || "");
     } catch (error) {
         console.error('Error:', error.message);
     } finally {
@@ -41,22 +57,24 @@ async function getLinks(page, baseUrl) {
         return Array.from(document.querySelectorAll('a'))
             .map(a => a.href)
             .filter(href => href.startsWith(baseUrl))
-            .slice(0, 10);
+            .slice(0, 1);
     }, baseUrl);
 }
 
-async function convertPdf(browser, links) {
-    const pdfContent = [];
-    for (const link of links) {
-        const linkPage = await browser.newPage();
-        await linkPage.goto(link);
-        const content = await linkPage.content();
-        console.log(content);
-        const pdf = await linkPage.pdf({ format: 'A4' });
-        pdfContent.push(pdf);
-        await linkPage.close();
-    }
-    return pdfContent;
+async function getGroqChatCompletion(input) {
+    const groq = new Groq({
+        apiKey: process.env.GROQ_API_KEY
+    });
+
+    return groq.chat.completions.create({
+        messages: [
+            {
+                role: "user",
+                content: input
+            }
+        ],
+        model: "llama3-8b-8192"
+    });
 }
 
 getDOM();

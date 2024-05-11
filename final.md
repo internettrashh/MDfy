@@ -1,0 +1,1 @@
+{"error":"The model meta-llama/Meta-Llama-3-8B is too large to be loaded automatically (16GB > 10GB). Please use Spaces (https://huggingface.co/spaces) or Inference Endpoints (https://huggingface.co/inference-endpoints)."}

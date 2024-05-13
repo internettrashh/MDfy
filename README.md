@@ -2,7 +2,7 @@
 - extract DOM from site using pupeteer
 - simple sitecrawler (scrape subpages without sitemap)
 - html to md using  turndown
-- md  noise filter with llama3
+- md  noise filter with mistralai/Mixtral-8x22B-Instruct-v0.1 (64k context)
 
 
   # To do:

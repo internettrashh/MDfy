@@ -6,7 +6,7 @@
 
 
   # To do:
-- finalise llm to denoise md 
-- express endpoint 
+- ~~finalise llm to denoise md~~
+- ~~express endpoint~~ 
 - work on concurency
 

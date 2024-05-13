@@ -21,7 +21,7 @@ npm install
 ```
 
 3. Create a .env file in the root of your project and add your DeepInfra API key:
-Replace your_api_key with your actual DeepInfra API key.(get yor api for free [here](https://deepinfra.com/)
+Replace your_api_key with your actual DeepInfra API key.(get yor api for free [here](https://deepinfra.com/))
 
   Running the API
   To start the API, run the following command in your terminal:

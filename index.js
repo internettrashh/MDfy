@@ -28,7 +28,7 @@ app.get('/web2md', async (req, res) => {
         res.status(500).send('An error occurred: ' + error.message);
     }
 });
-app.get('/', (req, res) => {
+app.get('/demo', (req, res) => {
     res.sendFile(path.join(__dirname, 'demo', 'Docs.html'));
 });
 

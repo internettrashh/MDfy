@@ -2,9 +2,11 @@ import puppeteer from "puppeteer";
 import TurndownService from 'turndown';
 import fs from 'fs';
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+dotenv.config();
 
 async function getDOM() {
-    const baseUrl = 'https://deno.com/blog/build-cloud-ide-subhosting';
+    const baseUrl = 'https://tools.iplocation.net/curl-request';
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     
@@ -59,11 +61,12 @@ async function getLinks(page, baseUrl) {
         return Array.from(document.querySelectorAll('a'))
             .map(a => a.href)
             .filter(href => href.startsWith(baseUrl))
-            .slice(0, 10); // Limit to 10 links , edit this based on your token limits
+            .slice(0, 2); // Limit to 10 links , edit this based on your token limits
     }, baseUrl);
 }
 //replace the llm if you wish am still experimenting on this part of the code , just make sure you have access to about 6-7k tokens per request
 async function getDeepInfraChatCompletion(input) {
+    console.log('process.env.DEEPINFRA_API_KEY', process.env.DEEPINFRA_API_KEY)
     const response = await fetch('https://api.deepinfra.com/v1/openai/chat/completions', {
         method: 'POST',
         headers: {
@@ -71,7 +74,7 @@ async function getDeepInfraChatCompletion(input) {
             'Authorization': `Bearer ${process.env.DEEPINFRA_API_KEY}`
         },
         body: JSON.stringify({
-            model: "meta-llama/Meta-Llama-3-8B-Instruct",
+            model: "mistralai/Mixtral-8x22B-Instruct-v0.1",
             messages: [
                 {
                     role: "user",
@@ -82,6 +85,7 @@ async function getDeepInfraChatCompletion(input) {
     });
 
     const result = await response.json();
+    console.log(result);
     return result;
 }
 

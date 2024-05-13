@@ -15,6 +15,7 @@
     "express": "^4.19.2",
     "groq-sdk": "^0.3.3",
     "html2pdf.js": "^0.10.1",
+    "nodemon": "^3.1.0",
     "puppeteer": "^22.8.0",
     "turndown": "^7.1.3"
   }

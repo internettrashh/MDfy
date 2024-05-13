@@ -3,10 +3,33 @@ import TurndownService from 'turndown';
 import fs from 'fs';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
+import express from 'express';
+
 dotenv.config();
 
-async function getDOM() {
-    const baseUrl = 'https://tools.iplocation.net/curl-request';
+const app = express();
+
+app.get('/web2md', async (req, res) => {
+    const { url, numPages } = req.query;
+    if (!url || !numPages) {
+        return res.status(400).send('Missing url or numPages query parameter');
+    }
+    try {
+        const markdown = await getDOM(url, numPages);
+        res.send(markdown);
+    } catch (error) {
+        console.error('Error:', error.message);
+        res.status(500).send('An error occurred: ' + error.message);
+    }
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+async function getDOM(url, numPages) {
+    const baseUrl = url;
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     
@@ -27,7 +50,8 @@ async function getDOM() {
             timeoutPromise
         ]);
         
-        const links = await getLinks(page, baseUrl);
+        const links = await getLinks(page, baseUrl, numPages);
+
         
         for (const link of links) {
             await page.goto(link);
@@ -45,9 +69,12 @@ Return the markdown and nothing.
 Input: ${markdown}`);
         fs.unlinkSync('output.md');
         if (result.choices && result.choices.length > 0) {
-            fs.writeFileSync('final.md', result.choices[0]?.message?.content || "");
+            const finalMarkdown = result.choices[0]?.message?.content || "";
+            fs.writeFileSync('final.md', finalMarkdown);
+            return finalMarkdown; // return the markdown content
         } else {
             console.error('No choices returned from the API');
+            return ''; // return an empty string if no choices were returned from the API
         }
     } catch (error) {
         console.error('Error:', error.message);
@@ -56,13 +83,13 @@ Input: ${markdown}`);
     }
 }
 
-async function getLinks(page, baseUrl) {
-    return await page.evaluate((baseUrl) => {
+async function getLinks(page, baseUrl, numPages) {
+    return await page.evaluate((baseUrl, numPages) => {
         return Array.from(document.querySelectorAll('a'))
             .map(a => a.href)
             .filter(href => href.startsWith(baseUrl))
-            .slice(0, 2); // Limit to 10 links , edit this based on your token limits
-    }, baseUrl);
+            .slice(0, numPages);
+    }, baseUrl, numPages);
 }
 //replace the llm if you wish am still experimenting on this part of the code , just make sure you have access to about 6-7k tokens per request
 async function getDeepInfraChatCompletion(input) {
@@ -89,4 +116,3 @@ async function getDeepInfraChatCompletion(input) {
     return result;
 }
 
-getDOM();

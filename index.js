@@ -4,11 +4,17 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 
 const app = express();
-
+//endpooit 
 app.get('/web2md', async (req, res) => {
     const { url, numPages } = req.query;
     if (!url || !numPages) {
@@ -21,6 +27,9 @@ app.get('/web2md', async (req, res) => {
         console.error('Error:', error.message);
         res.status(500).send('An error occurred: ' + error.message);
     }
+});
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'demo', 'Docs.html'));
 });
 
 const port = process.env.PORT || 3000;

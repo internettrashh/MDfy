@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 //endpooit 
-app.get('/web2md', async (req, res) => {
+app.get('/convert', async (req, res) => {
     const { url, numPages } = req.query;
     if (!url || !numPages) {
         return res.status(400).send('Missing url or numPages query parameter');
@@ -28,7 +28,7 @@ app.get('/web2md', async (req, res) => {
         res.status(500).send('An error occurred: ' + error.message);
     }
 });
-app.get('/demo', (req, res) => {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'demo', 'Docs.html'));
 });
 

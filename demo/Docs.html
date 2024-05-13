@@ -34,7 +34,7 @@
             <output id="sliderValue">1</output><br>
             <input type="submit" value="Submit">
         </form>
-        <p id="curlCommand">curl 'http://localhost:3000/web2md?url=https://tools.iplocation.net/curl-request&numPages=2'</p>
+        <p id="curlCommand">curl 'http://localhost:3000/convert?url=https://tools.iplocation.net/curl-request&numPages=2'</p>
         <button id="copyButton">Copy curl command</button>
         <div id="responseBox"></div>
         <div id="loader">Loading...</div>
@@ -46,7 +46,7 @@
             const numPages = document.getElementById('numPagesInput').value;
             // Show the loader
             document.getElementById('loader').style.display = 'block';
-            const response = await fetch(`http://localhost:3000/web2md?url=${encodeURIComponent(url)}&numPages=${numPages}`);
+            const response = await fetch(`http://localhost:3000/convert?url=${encodeURIComponent(url)}&numPages=${numPages}`);
             const data = await response.text();
             // Hide the loader
             document.getElementById('loader').style.display = 'none';

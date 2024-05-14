@@ -37,7 +37,7 @@ app.get('/convert', async (req, res) => {
     }
 });
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'demo', 'Docs.html'));
+    res.sendFile(path.join(__dirname, '../demo', 'Docs.html'));
 });
 
 const port = process.env.PORT || 3000;

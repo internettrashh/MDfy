@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public', 'Docs.html'));
 });
 app.get('/convert', async (req, res) => {
-    const { url, numPages } = req.query;e
+    const { url, numPages } = req.query;
     if (!url || !numPages) {
         return res.status(400).send('Missing url or numPages query parameter');
     }

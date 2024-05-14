@@ -22,9 +22,10 @@ const __dirname = dirname(__filename);
 
 
 app.use(cors());
+app.use(express.static('public'));
 //endpooit 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../demo', 'Docs.html'));
+    res.sendFile(path.join(__dirname, '../public', 'Docs.html'));
 });
 app.get('/convert', async (req, res) => {
     const { url, numPages } = req.query;

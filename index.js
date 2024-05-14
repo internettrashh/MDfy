@@ -8,6 +8,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cors from 'cors';
+import chromium from 'chrome-aws-lambda';
+
 
 const  app = express();
 
@@ -49,7 +51,13 @@ app.listen(port, () => {
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
-    const browser = await puppeteer.launch();
+    const browser =await chromium.puppeteer.launch({
+        args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath,
+        headless: true,
+        ignoreHTTPSErrors: true,
+      });
     const page = await browser.newPage();
     
     // Set a timeout of 30 seconds

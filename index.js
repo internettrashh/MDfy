@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import TurndownService from 'turndown';
 import fs from 'fs';
 import fetch from 'node-fetch';
@@ -8,24 +8,17 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cors from 'cors';
-import chromium from 'chrome-aws-lambda';
 
-
-const  app = express();
+const app = express();
 
 // Use cors middleware
 app.use(cors());
-
-// Your routes go here
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
-app.use(cors());
 app.use(express.static('public'));
-//endpooit 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public', 'Docs.html'));
 });
@@ -43,7 +36,6 @@ app.get('/convert', async (req, res) => {
     }
 });
 
-
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
@@ -51,14 +43,9 @@ app.listen(port, () => {
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
-    const browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath: await chromium.executablePath,
-        headless: chromium.headless,
-    });
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
     
-    // Set a timeout of 30 seconds
     const timeout = 30000;
     const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
@@ -77,7 +64,6 @@ async function getDOM(url, numPages) {
         
         const links = await getLinks(page, baseUrl, numPages);
 
-        
         for (const link of links) {
             await page.goto(link);
             const html = await page.content();
@@ -96,10 +82,10 @@ Input: ${markdown}`);
         if (result.choices && result.choices.length > 0) {
             const finalMarkdown = result.choices[0]?.message?.content || "";
             fs.writeFileSync('final.md', finalMarkdown);
-            return finalMarkdown; // return the markdown content
+            return finalMarkdown;
         } else {
             console.error('No choices returned from the API');
-            return ''; // return an empty string if no choices were returned from the API
+            return '';
         }
     } catch (error) {
         console.error('Error:', error.message);
@@ -116,7 +102,7 @@ async function getLinks(page, baseUrl, numPages) {
             .slice(0, numPages);
     }, baseUrl, numPages);
 }
-//replace the llm if you wish am still experimenting on this part of the code , just make sure you have access to about 6-7k tokens per request
+
 async function getDeepInfraChatCompletion(input) {
     console.log('process.env.DEEPINFRA_API_KEY', process.env.DEEPINFRA_API_KEY)
     const response = await fetch('https://api.deepinfra.com/v1/openai/chat/completions', {
@@ -140,4 +126,3 @@ async function getDeepInfraChatCompletion(input) {
     console.log(result);
     return result;
 }
-

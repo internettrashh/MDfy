@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import puppeteer from 'puppeteer-core';
 import TurndownService from 'turndown';
 import fs from 'fs';
 import fetch from 'node-fetch';
@@ -51,13 +51,11 @@ app.listen(port, () => {
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
-    const browser =await chromium.puppeteer.launch({
-        args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
-        defaultViewport: chromium.defaultViewport,
+    const browser = await puppeteer.launch({
+        args: chromium.args,
         executablePath: await chromium.executablePath,
-        headless: true,
-        ignoreHTTPSErrors: true,
-      });
+        headless: chromium.headless,
+    });
     const page = await browser.newPage();
     
     // Set a timeout of 30 seconds

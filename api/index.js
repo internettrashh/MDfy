@@ -23,6 +23,9 @@ const __dirname = dirname(__filename);
 
 app.use(cors());
 //endpooit 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../demo', 'Docs.html'));
+});
 app.get('/convert', async (req, res) => {
     const { url, numPages } = req.query;
     if (!url || !numPages) {
@@ -36,9 +39,7 @@ app.get('/convert', async (req, res) => {
         res.status(500).send('An error occurred: ' + error.message);
     }
 });
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../demo', 'Docs.html'));
-});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

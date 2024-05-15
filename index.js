@@ -9,15 +9,19 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cors from 'cors';
 
-const app = express();
+const  app = express();
 
 // Use cors middleware
 app.use(cors());
+
+// Your routes go here
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+
+app.use(cors());
 app.use(express.static('public'));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public', 'Docs.html'));
@@ -36,16 +40,20 @@ app.get('/convert', async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+
+// const port = process.env.PORT || 3000;
+// app.listen(port, () => {
+//     console.log(`Server is running on port ${port}`);
+// });
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox']
+      });
     const page = await browser.newPage();
     
+    // Set a timeout of 30 seconds
     const timeout = 30000;
     const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
@@ -58,7 +66,7 @@ async function getDOM(url, numPages) {
 
     try {
         await Promise.race([
-            page.goto(baseUrl),
+            page.goto(baseUrl, { timeout: 0 }),
             timeoutPromise
         ]);
         
@@ -70,7 +78,7 @@ async function getDOM(url, numPages) {
             markdown += turndownService.turndown(html);
         }
 
-        fs.writeFileSync('output.md', markdown);
+        //fs.writeFileSync('output.md', markdown);
         const result = await getDeepInfraChatCompletion(`You are an AI assistant that converts webpage content to markdown while filtering out unnecessary information. Please follow these guidelines:
 Remove any inappropriate content, ads, or irrelevant information
 If unsure about including something, err on the side of keeping it
@@ -78,14 +86,14 @@ Answer in English. Include all points in markdown in sufficient detail to be use
 Aim for clean, readable markdown.
 Return the markdown and nothing.
 Input: ${markdown}`);
-        fs.unlinkSync('output.md');
+       // fs.unlinkSync('output.md');
         if (result.choices && result.choices.length > 0) {
             const finalMarkdown = result.choices[0]?.message?.content || "";
             fs.writeFileSync('final.md', finalMarkdown);
             return finalMarkdown;
         } else {
             console.error('No choices returned from the API');
-            return '';
+            return ''; // return an empty string if no choices were returned from the API
         }
     } catch (error) {
         console.error('Error:', error.message);
@@ -94,17 +102,18 @@ Input: ${markdown}`);
     }
 }
 
-async function getLinks(page, baseUrl, numPages) {
-    return await page.evaluate((baseUrl, numPages) => {
+async function getLinks(page, params) {
+    const { baseUrl, numPages } = params;
+    return await page.evaluate(({ baseUrl, numPages }) => {
         return Array.from(document.querySelectorAll('a'))
             .map(a => a.href)
             .filter(href => href.startsWith(baseUrl))
             .slice(0, numPages);
-    }, baseUrl, numPages);
+    }, { baseUrl, numPages });
 }
-
+//replace the llm if you wish am still experimenting on this part of the code , just make sure you have access to about 6-7k tokens per request
 async function getDeepInfraChatCompletion(input) {
-    console.log('process.env.DEEPINFRA_API_KEY', process.env.DEEPINFRA_API_KEY)
+    //console.log('process.env.DEEPINFRA_API_KEY', process.env.DEEPINFRA_API_KEY)
     const response = await fetch('https://api.deepinfra.com/v1/openai/chat/completions', {
         method: 'POST',
         headers: {

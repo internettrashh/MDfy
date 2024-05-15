@@ -41,10 +41,10 @@ app.get('/convert', async (req, res) => {
 });
 
 
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//     console.log(`Server is running on port ${port}`);
-// });
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
@@ -89,7 +89,7 @@ Input: ${markdown}`);
        // fs.unlinkSync('output.md');
         if (result.choices && result.choices.length > 0) {
             const finalMarkdown = result.choices[0]?.message?.content || "";
-            fs.writeFileSync('final.md', finalMarkdown);
+           // fs.writeFileSync('final.md', finalMarkdown);
             return finalMarkdown;
         } else {
             console.error('No choices returned from the API');

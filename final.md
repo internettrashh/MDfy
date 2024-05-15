@@ -4,6 +4,7 @@
 
 Linux is an open-source operating system based on Unix. Created by Linus Torvalds, it was first released in 1991. Linux is used as the operating system for web servers, network operations, and government agencies.
 
+
 ### Advantages of Linux
 
 - **Open Source**: Linux is an open-source operating system. Developers can contribute to its source code, and users can customize their operating system according to their needs.

@@ -46,7 +46,7 @@
             const numPages = document.getElementById('numPagesInput').value;
             // Show the loader
             document.getElementById('loader').style.display = 'block';
-            const response = await fetch(`http://localhost:3000/convert?url=${encodeURIComponent(url)}&numPages=${numPages}`);
+            const response = await fetch(`http://localhost:8080/convert?url=${encodeURIComponent(url)}&numPages=${numPages}`);
             const data = await response.text();
             // Hide the loader
             document.getElementById('loader').style.display = 'none';

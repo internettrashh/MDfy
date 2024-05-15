@@ -78,7 +78,7 @@ async function getDOM(url, numPages) {
             markdown += turndownService.turndown(html);
         }
 
-        //fs.writeFileSync('output.md', markdown);
+        fs.writeFileSync('output.md', markdown);
         const result = await getDeepInfraChatCompletion(`You are an AI assistant that converts webpage content to markdown while filtering out unnecessary information. Please follow these guidelines:
 Remove any inappropriate content, ads, or irrelevant information
 If unsure about including something, err on the side of keeping it
@@ -86,10 +86,10 @@ Answer in English. Include all points in markdown in sufficient detail to be use
 Aim for clean, readable markdown.
 Return the markdown and nothing.
 Input: ${markdown}`);
-       // fs.unlinkSync('output.md');
+        fs.unlinkSync('output.md');
         if (result.choices && result.choices.length > 0) {
             const finalMarkdown = result.choices[0]?.message?.content || "";
-           // fs.writeFileSync('final.md', finalMarkdown);
+            fs.writeFileSync('final.md', finalMarkdown);
             return finalMarkdown;
         } else {
             console.error('No choices returned from the API');

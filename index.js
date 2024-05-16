@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 import TurndownService from 'turndown';
 import fs from 'fs';
 import fetch from 'node-fetch';
@@ -23,6 +23,7 @@ const __dirname = dirname(__filename);
 
 app.use(cors());
 app.use(express.static('public'));
+//endpooit 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public', 'Docs.html'));
 });
@@ -48,9 +49,7 @@ app.listen(port, () => {
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox']
-      });
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
     
     // Set a timeout of 30 seconds
@@ -66,12 +65,13 @@ async function getDOM(url, numPages) {
 
     try {
         await Promise.race([
-            page.goto(baseUrl, { timeout: 0 }),
+            page.goto(baseUrl),
             timeoutPromise
         ]);
         
         const links = await getLinks(page, baseUrl, numPages);
 
+        
         for (const link of links) {
             await page.goto(link);
             const html = await page.content();
@@ -83,6 +83,8 @@ async function getDOM(url, numPages) {
 Remove any inappropriate content, ads, or irrelevant information
 If unsure about including something, err on the side of keeping it
 Answer in English. Include all points in markdown in sufficient detail to be useful.
+Do not summarize or paraphrase the content.
+provide the full content in markdown format without skipping any part of the content which isnt explecitely mentined in my instructions .
 Aim for clean, readable markdown.
 Return the markdown and nothing.
 Input: ${markdown}`);
@@ -90,7 +92,7 @@ Input: ${markdown}`);
         if (result.choices && result.choices.length > 0) {
             const finalMarkdown = result.choices[0]?.message?.content || "";
             fs.writeFileSync('final.md', finalMarkdown);
-            return finalMarkdown;
+            return finalMarkdown; // return the markdown content
         } else {
             console.error('No choices returned from the API');
             return ''; // return an empty string if no choices were returned from the API
@@ -102,18 +104,17 @@ Input: ${markdown}`);
     }
 }
 
-async function getLinks(page, params) {
-    const { baseUrl, numPages } = params;
-    return await page.evaluate(({ baseUrl, numPages }) => {
+async function getLinks(page, baseUrl, numPages) {
+    return await page.evaluate((baseUrl, numPages) => {
         return Array.from(document.querySelectorAll('a'))
             .map(a => a.href)
             .filter(href => href.startsWith(baseUrl))
             .slice(0, numPages);
-    }, { baseUrl, numPages });
+    }, baseUrl, numPages);
 }
 //replace the llm if you wish am still experimenting on this part of the code , just make sure you have access to about 6-7k tokens per request
 async function getDeepInfraChatCompletion(input) {
-    //console.log('process.env.DEEPINFRA_API_KEY', process.env.DEEPINFRA_API_KEY)
+   // console.log('process.env.DEEPINFRA_API_KEY', process.env.DEEPINFRA_API_KEY)
     const response = await fetch('https://api.deepinfra.com/v1/openai/chat/completions', {
         method: 'POST',
         headers: {

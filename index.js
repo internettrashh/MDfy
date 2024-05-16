@@ -49,7 +49,9 @@ app.listen(port, () => {
 
 async function getDOM(url, numPages) {
     const baseUrl = url;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox']
+      });
     const page = await browser.newPage();
     
     // Set a timeout of 30 seconds
@@ -88,7 +90,7 @@ provide the full content in markdown format without skipping any part of the con
 Aim for clean, readable markdown.
 Return the markdown and nothing.
 Input: ${markdown}`);
-        fs.unlinkSync('output.md');
+        //fs.unlinkSync('output.md');
         if (result.choices && result.choices.length > 0) {
             const finalMarkdown = result.choices[0]?.message?.content || "";
             fs.writeFileSync('final.md', finalMarkdown);
